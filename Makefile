@@ -1,6 +1,6 @@
 # Define the source and output
 TARGET = libdrawing_3d
-SRC = obj_loader.cpp
+SRC = src/main.cpp
 
 # Platform detection
 UNAME_S := $(shell uname -s)

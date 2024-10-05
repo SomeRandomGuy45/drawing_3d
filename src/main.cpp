@@ -1,6 +1,10 @@
-#include "helper.h"
+#include "main_lib.h"
 #include <atomic>
+#include <condition_variable>
 #include <mutex>
+
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
 std::atomic<bool> windowReady(false);
 std::condition_variable cv;
