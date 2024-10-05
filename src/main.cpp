@@ -709,7 +709,7 @@ int createNewWindow() {
 extern "C" DLLEXPORT std::string helper createWin(const std::vector<std::string>& args) {
     std::thread t = std::thread([&]() {
         createNewWindow();
-    })
+    });
     t.detach();
 
     return "Window created";
