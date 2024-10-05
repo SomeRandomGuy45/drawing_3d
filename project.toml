@@ -1,0 +1,8 @@
+[build]
+install_script = 'drawing_3d/build.sh'
+src_path = 'drawing_3d/src'
+
+[config]
+authors = 'SomeRandomGuyz'
+name = 'drawing_3d'
+version = 'v1.0.0'
