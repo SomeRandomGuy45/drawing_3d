@@ -1,35 +1,40 @@
-# Define the target
-TARGET = libmain_lib
-SRCS = main.cpp
-HEADERS = main_lib.h
+# Define the source and output
+TARGET = libdrawing_3d
+SRC = obj_loader.cpp
 
-# Define the platform
+# Platform detection
 UNAME_S := $(shell uname -s)
 
-# Compiler settings
+# Compiler and standard
 CXX = g++
-CXXFLAGS = -shared -fPIC -Wall -Wextra -I. --std=c++20
+CXXFLAGS = --std=c++20 -fPIC -Wall -Wextra -I.
+
+# Libraries and frameworks
+LIBS_LINUX = -lGL -lGLEW -lglfw -lassimp
+LIBS_MACOS = -framework OpenGL -lGLEW -lglfw -lassimp
+LIBS_WINDOWS = -lopengl32 -lglew32 -lglfw3 -lassimp
 
 # Platform-specific settings
-ifeq ($(UNAME_S), Darwin)  # macOS
+ifeq ($(UNAME_S), Darwin)
     TARGET_LIB = $(TARGET).dylib
-    CXXFLAGS += -fvisibility=default -dynamiclib
-    LDFLAGS = -install_name @rpath/$(TARGET_LIB)
-else ifeq ($(UNAME_S), Linux)  # Linux
+    LIBS = $(LIBS_MACOS)
+    CXXFLAGS += -fvisibility=default
+    LDFLAGS = -dynamiclib -install_name @rpath/$(TARGET_LIB)
+else ifeq ($(UNAME_S), Linux)
+    LIBS = $(LIBS_LINUX)
     TARGET_LIB = lib$(TARGET).so
-else  # Assuming Windows (requires MinGW or similar)
+    LDFLAGS = -shared
+else
     TARGET_LIB = $(TARGET).dll
-    CXX = x86_64-w64-mingw32-g++
-    CXXFLAGS = -shared -Wall -Wextra -I.
+    LIBS = $(LIBS_WINDOWS)
+    CXXFLAGS += -DGLFW_INCLUDE_NONE
+    LDFLAGS = -shared
 endif
 
 # Build target
-all: $(TARGET_LIB)
+$(TARGET): $(SRC)
+	$(CXX) $(CXXFLAGS) -o $(TARGET_LIB) $(SRC) $(LDFLAGS) $(LIBS)
 
-$(TARGET_LIB): $(SRCS) $(HEADERS)
-	$(CXX) $(CXXFLAGS) $(SRCS) -o $(TARGET_LIB) $(LDFLAGS)
-
-# Clean up
+# Clean up the build
 clean:
-	rm -f *.o *.so *.dylib *.dll
-    
+	rm -f $(TARGET) $(TARGET_LIB)
