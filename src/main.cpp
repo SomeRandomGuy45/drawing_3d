@@ -249,15 +249,17 @@ void renderModels(GLuint shaderProgram) {
         glm::vec3 rotationAxis = std::get<2>(std::get<2>(model));
         GLuint textureID = std::get<3>(model); // Get textureID
 
+        // Create model matrix (transformations)
+        glm::mat4 modelMatrix = glm::translate(glm::mat4(1.0f), position);
+
         // Normalize the axis and calculate the angle
         float rotationAngle = glm::length(rotationAxis);
         if (rotationAngle > 0.0f) {
             rotationAxis = glm::normalize(rotationAxis);
+            modelMatrix = glm::rotate(modelMatrix, rotationAngle, rotationAxis); // Rotation
         }
-
-        glm::mat4 modelMatrix = glm::translate(glm::mat4(1.0f), position);
-        modelMatrix = glm::rotate(modelMatrix, rotationAngle, rotationAxis); // Rotation
         modelMatrix = glm::scale(modelMatrix, scale); // Scaling
+        
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(modelMatrix));
 
         // Check if the texture is used
