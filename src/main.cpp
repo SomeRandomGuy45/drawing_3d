@@ -658,7 +658,7 @@ int createNewWindow() {
     //Example: models.push_back(loadModel("pathToObj.obj", glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(255.0f,0.0f,0.0f), glm::vec3(1.0f), glm::vec3(90.0f, 45.0f, 90.0f)));
 
     // Set up projection matrix
-    glm::mat4 projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+    glm::mat4 projection = camera.getProjectionMatrix();
 
     glEnable(GL_DEPTH_TEST); // Enable depth testing
     glEnable(GL_CULL_FACE);  // Enable backface culling
@@ -684,7 +684,7 @@ int createNewWindow() {
         glm::mat4 view = camera.getViewMatrix();
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "view"), 1, GL_FALSE, glm::value_ptr(view));
         
-        glm::mat4 projection = camera.getProjectionMatrix();
+        projection = camera.getProjectionMatrix();
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 
         // Render all loaded models
