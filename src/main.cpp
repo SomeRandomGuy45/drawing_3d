@@ -595,9 +595,10 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     camera->setProjection((float)width / (float)height);
 }
 
-void CreateModel_Test()
+ReturnType CreateModel_Test(const std::vector<std::string>& args)
 {
     models.push_back(loadModel("test.obj", glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(255.0f,0.0f,0.0f), glm::vec3(1.0f), glm::vec3(90.0f, 45.0f, 90.0f)));
+    return nullptr;
 }
 
 void ClearColor()
@@ -655,7 +656,7 @@ int createNewWindow() {
     GLuint shaderProgram = compileShaders();
 
     // Load models into a vector
-    //Example: models.push_back(loadModel("pathToObj.obj", glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(255.0f,0.0f,0.0f), glm::vec3(1.0f), glm::vec3(90.0f, 45.0f, 90.0f)));
+    // Example: models.push_back(loadModel("pathToObj.obj", glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(255.0f,0.0f,0.0f), glm::vec3(1.0f), glm::vec3(90.0f, 45.0f, 90.0f)));
 
     // Set up projection matrix
     glm::mat4 projection = camera.getProjectionMatrix();
@@ -708,22 +709,90 @@ int createNewWindow() {
     return 0;
 }
 
-extern "C" DLLEXPORT std::string helper createWin(const std::vector<std::string>& args) {
+std::vector<float> parseStringToVector(const std::string& input) {
+    // Check if the string starts with '(' and ends with ')'
+    if (input.empty() || input.front() != '(' || input.back() != ')') {
+        throw std::invalid_argument("Invalid format. Input should be in the format (a, b, c).");
+    }
+
+    // Remove parentheses
+    std::string content = input.substr(1, input.size() - 2);
+
+    // Parse numbers separated by commas
+    std::istringstream ss(content);
+    std::string token;
+    std::vector<float> numbers;
+
+    while (std::getline(ss, token, ',')) {
+        try {
+            numbers.push_back(std::stof(token));
+        } catch (const std::exception&) {
+            throw std::invalid_argument("Invalid number format in input.");
+        }
+    }
+
+    // Ensure at least one number was found
+    if (numbers.empty()) {
+        throw std::invalid_argument("Input should contain numbers.");
+    }
+
+    return numbers;
+}
+
+open DLLEXPORT ReturnType helper createWin(const std::vector<std::string>& args) {
     std::thread t = std::thread([&]() {
         createNewWindow();
     });
     t.detach();
-
-    return "Window created";
+    return nullptr;
 }
 
-extern "C" open DLLEXPORT std::vector<std::string> helper listFunctions() {
-    return {std::string("createWin")};
+glm::vec3 doLogic(const std::string& arg)
+{
+    std::vector<float> nums = parseStringToVector(arg);
+    return glm::vec3(nums[0], nums[1], nums[2]);
 }
 
-extern "C" DLLEXPORT FunctionPtr helper getFunction(const char* name) {
+open DLLEXPORT ReturnType helper addObj(const std::vector<std::string>& args) {
+    //models.push_back(loadModel("pathToObj.obj", glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(255.0f,0.0f,0.0f), glm::vec3(1.0f), glm::vec3(90.0f, 45.0f, 90.0f)));
+    if (args.size() < 1)
+    {
+        std::cerr << "ERROR::addObj() missing path to obj file and extra data\n";
+        return nullptr;
+    }
+    std::string pathToObj = args[0];
+    glm::vec3 pos = glm::vec3(0.0f, 0.0f, 0.0f);
+    glm::vec3 color = glm::vec3(255.0f,0.0f,0.0f);
+    glm::vec3 scale = glm::vec3(1.0f);
+    glm::vec3 rotation = glm::vec3(90.0f, 45.0f, 90.0f);
+    if (args.size() > 2) {
+        pos = doLogic(args[1]);
+    }
+    if (args.size() > 3) {
+        color = doLogic(args[2]);
+    }
+    if (args.size() > 4) {
+        scale = doLogic(args[3]);
+    }
+    if (args.size() > 5) {
+        rotation = doLogic(args[4]);
+    }
+    models.push_back(loadModel(pathToObj, pos, color, scale, rotation));
+    std::cout << "INFO::addObj() added model " << pathToObj << "\n";
+    return nullptr;
+}
+
+open open DLLEXPORT std::vector<std::string> helper listFunctions() {
+    return {std::string("createWin"), std::string("addObj"), std::string("CreateModel_Test")};
+}
+
+open DLLEXPORT FunctionPtr helper getFunction(const char* name) {
     if (std::string(name) == "createWin") {
         return &createWin;
+    } else if (std::string(name) == "addObj") {
+        return &addObj;
+    } else if (std::string(name) == "CreateModel_Test") {
+        return &CreateModel_Test;
     }
     return nullptr;
 }

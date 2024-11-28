@@ -18,6 +18,8 @@
 #include <map>
 #include <cmath>
 #include <thread>
+#include <stdexcept>
+#include <sstream>
 
 #if defined(__APPLE__) // macOS
 #include <dispatch/dispatch.h>
@@ -74,25 +76,27 @@ void processMainThreadQueue() {
 
 std::thread windowThread;
 
+#include <variant>
+
+
+#define open extern "C"
 #ifdef _WIN32
     #define DLLEXPORT __declspec(dllexport)
     #define helper __stdcall
-    #define open extern "C"
 #else
     #define DLLEXPORT __attribute__((visibility("default")))
     #define helper
-    #define open
 #endif
 
-// Function pointer type for library functions
-typedef std::string (*FunctionPtr)(const std::vector<std::string>& args);
+using ReturnType = std::variant<std::nullptr_t, std::string>;
 
-extern "C" open DLLEXPORT std::string helper createWin(const std::vector<std::string>& args);
+// Function pointer type for library functions
+typedef ReturnType(*FunctionPtr)(const std::vector<std::string>& args);
 
 // Function to list all available functions in the library
-extern "C" open DLLEXPORT std::vector<std::string> helper listFunctions();
+open DLLEXPORT std::vector<std::string> helper listFunctions();
 
 // Function to get a function pointer by name
-extern "C" DLLEXPORT FunctionPtr helper getFunction(const char* name);
+open DLLEXPORT FunctionPtr helper getFunction(const char* name);
 
 #endif
